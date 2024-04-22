@@ -6,12 +6,12 @@ class LifeGame:
     def __init__(self):
 
         # Settings
-        self.WIDTH = 1000
+        self.WIDTH = 1600
         self.HEIGHT = 1000
-        self.TILE_SIZE = 20
+        self.TILE_SIZE = 10
         self.GRID_WIDTH = self.WIDTH // self.TILE_SIZE
         self.GRID_HEIGHT = self.HEIGHT // self.TILE_SIZE
-        self.FPS = 5
+        self.FPS = 10
 
         pygame.init()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
@@ -31,8 +31,12 @@ class LifeGame:
         neighbours = []
         col, row = cell
         for x in [-1, 0, 1]:
+            if col + x < 0 or col + x >= self.GRID_WIDTH:
+                continue
             for y in [-1, 0, 1]:
-                if col + x == col and row + y == row:
+                if row + y < 0 or row + y >= self.GRID_HEIGHT:
+                    continue
+                if x == 0 and y == 0:
                     continue
                 neighbours.append((col + x, row + y))
 
@@ -60,14 +64,15 @@ class LifeGame:
         return new_alive_cells
     def generate_random(self):
         cells = set()
-        for i in range(1, 100):
-            x = random.randint(0, 800)
-            y = random.randint(0, 800)
+        for i in range(random.randint(1, self.GRID_HEIGHT * self.GRID_WIDTH)):
+            x = random.randint(0, self.GRID_WIDTH)
+            y = random.randint(0, self.GRID_HEIGHT)
             cells.add((x, y))
 
         return cells
 
     def run_game(self):
+        pygame.display.set_caption("Game Of Life - PAUSED")
         run = True
         paused = True
         alive_cells = set()
@@ -76,7 +81,7 @@ class LifeGame:
             if not paused:
                 self.clock.tick(self.FPS)
                 alive_cells = self.update_grid(alive_cells)
-            #print(alive_cells)
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
@@ -84,7 +89,7 @@ class LifeGame:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = pygame.mouse.get_pos()
                     position = (x // self.TILE_SIZE, y // self.TILE_SIZE)
-
+                    print(position)
                     if position in alive_cells:
                         alive_cells.remove(position)
                     else:
@@ -93,9 +98,16 @@ class LifeGame:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         if paused:
+                            pygame.display.set_caption("Game Of Life - PLAYING")
                             paused = False
                         else:
+                            pygame.display.set_caption("Game Of Life - PAUSED")
                             paused = True
+                    if event.key == pygame.K_q:
+                        alive_cells = set()
+
+                    if event.key == pygame.K_r:
+                        alive_cells = self.generate_random()
 
             self.screen.fill((50, 50, 50))
             self.draw_grid(alive_cells)
@@ -103,7 +115,9 @@ class LifeGame:
 
         pygame.quit()
 
-
-if __name__ == '__main__':
+def main():
     game = LifeGame()
     game.run_game()
+
+if __name__ == '__main__':
+    main()
